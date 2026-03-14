@@ -19,7 +19,36 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
-  gtag('config', 'G-G7LN21XX64');
+  gtag('config', 'G-G7LN21XX64', {
+  send_page_view: false
+});
+function trackPageView(screenId) {
+  if (typeof gtag !== 'function') return;
+
+  const pageMap = {
+    'screen-home': '/home',
+    'screen-resus': '/rapid-resuscitation',
+    'screen-code': '/code-leader',
+    'screen-meds': '/medications',
+    'screen-med-detail': '/medication-detail',
+    'screen-cards': '/clinical-cards',
+    'screen-card-detail': '/clinical-card-detail',
+    'screen-calc': '/calculators',
+    'screen-qr': '/quick-reference',
+    'screen-learn': '/learning',
+    'screen-profile': '/profile'
+  };
+
+  const page_path = pageMap[screenId] || '/unknown';
+  const page_title = document.title + ' - ' + page_path.replace('/', '');
+
+  gtag('event', 'page_view', {
+    page_title: page_title,
+    page_path: page_path,
+    page_location: window.location.origin + page_path
+  });
+}
+
 </script>
 
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
