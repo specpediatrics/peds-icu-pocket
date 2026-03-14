@@ -3035,38 +3035,45 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!body || !learningState) return;
     const weak = Object.entries(learningState.missedTopics).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
     const minutes = Math.max(1, Math.round((Date.now()-learningState.startedAt)/60000));
-    const summary = {
-      completedAt: new Date().toISOString(),
-      score: learningState.correct,
-      total: learningState.session.length,
-      time_minutes: minutes,
-      weak_topics: weak
-    };
+   const summary = {
     localStorage.setItem('pedsicu_learning_data', JSON.stringify(summary));
-    body.innerHTML = `
-      <div class="lm-summary">
-        <p><strong>Session complete.</strong></p>
-        <p><strong>Score:</strong> ${learningState.correct} / ${learningState.session.length}</p>
-        <p><strong>Time spent:</strong> ${minutes} minute(s)</p>
-        <p><strong>Weak topics:</strong> ${weak.length ? weak.join(', ') : 'None prominent'}</p>
-        <p><strong>Recommendation:</strong> Review the corresponding clinical cards, then repeat the session.</p>
-      </div>
+   body.innerHTML = `
+  <div class="lm-summary">
+    <p><strong>Session complete.</strong></p>
+    <p><strong>Learner:</strong> ${learningState.learner?.name || 'Anonymous'}</p>
+    <p><strong>Level:</strong> ${learningState.learner?.pgy || 'Not specified'}</p>
+    <p><strong>Specialty:</strong> ${learningState.learner?.specialty || 'Not specified'}</p>
+    <p><strong>Score:</strong> ${learningState.correct} / ${learningState.session.length}</p>
+    <p><strong>Time spent:</strong> ${minutes} minute(s)</p>
+    <p><strong>Weak topics:</strong> ${weak.length ? weak.join(', ') : 'None prominent'}</p>
+    <p><strong>Recommendation:</strong> Review the corresponding clinical cards, then repeat the session.</p>
+  </div>
       <div class="lm-actions"><button class="lm-btn secondary" onclick="closeLearningModal()">Close</button><button class="lm-btn primary" onclick="exportLearningData()">Export Study Data</button></div>
     `;
   }
 
   window.startLearning = function(){
-    learningState = {
-      session: shuffle(QUIZ30).slice(0,30),
-      index: 0,
-      correct: 0,
-      answered: false,
-      startedAt: Date.now(),
-      missedTopics: {}
-    };
-    openLearningModal();
-    renderLearningQuestion();
+  const learnerName = document.getElementById('learner-name')?.value.trim() || 'Anonymous';
+  const learnerPGY = document.getElementById('learner-pgy')?.value || 'Not specified';
+  const learnerSpecialty = document.getElementById('learner-specialty')?.value || 'Not specified';
+
+  learningState = {
+    session: shuffle(QUIZ30).slice(0,30),
+    index: 0,
+    correct: 0,
+    answered: false,
+    startedAt: Date.now(),
+    missedTopics: {},
+    learner: {
+      name: learnerName,
+      pgy: learnerPGY,
+      specialty: learnerSpecialty
+    }
   };
+
+  openLearningModal();
+  renderLearningQuestion();
+};
 
   window.answerLearningQuestion = function(idx){
     if (!learningState || learningState.answered) return;
