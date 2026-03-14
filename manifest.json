@@ -1,12 +1,14 @@
 {
   "name": "Peds ICU Pocket",
   "short_name": "Peds ICU",
+  "description": "Pediatric critical care bedside reference, calculators, and learning tools.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#1B2A4A",
-  "theme_color": "#1B2A4A",
-  "description": "Pediatric critical care bedside reference, calculators, and learning tools.",
+  "orientation": "portrait",
+  "background_color": "#8C1D40",
+  "theme_color": "#8C1D40",
+
   "icons": [
     {
       "src": "icon-192.png",
@@ -19,6 +21,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
