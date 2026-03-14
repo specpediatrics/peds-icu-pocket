@@ -3193,79 +3193,473 @@ window.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-function finishLearningSession(){
-  const body = document.getElementById('learning-modal-body');
-  if (!body || !learningState) return;
-
-  const weak = Object.entries(learningState.missedTopics)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5)
-    .map(x=>x[0]);
-
-  const minutes = Math.max(1, Math.round((Date.now()-learningState.startedAt)/60000));
-
-  const learnerId =
-    document.getElementById('spec-learner-id')?.value?.trim() ||
-    'Not entered';
-
-  const learnerPgy =
-    document.getElementById('spec-learner-pgy')?.value ||
-    'Not entered';
-
-  const learnerSpecialty =
-    document.getElementById('spec-learner-specialty')?.value ||
-    'Not entered';
-
-  const learnerSite =
-    document.getElementById('spec-learner-site')?.value?.trim() ||
-    'Not entered';
-
-  const summary = {
-    learner_id: learnerId,
-    pgy_level: learnerPgy,
-    specialty: learnerSpecialty,
-    institution: learnerSite,
-    completedAt: new Date().toISOString(),
-    score: learningState.correct,
-    total: learningState.session.length,
-    time_minutes: minutes,
-    weak_topics: weak
+<script>
+(function(){
+  const adultCaps = {
+    epiMg: 1,
+    epiMl: 10,
+    defibFirst: 200,
+    defibNext: 200,
+    cardioversion: 200,
+    atropine: 1,
+    fluidBolus: 2000,
+    bicarb: 50,
+    caGlu: 3000,
+    caCl: 1000,
+    amio: 300,
+    lido: 100,
+    adeno1: 6,
+    adeno2: 12,
+    mag: 2000
   };
 
-  localStorage.setItem('pedsicu_learning_data', JSON.stringify(summary));
+  const cap = (val,max) => Math.min(val,max);
+  const fmt = (val,d=0) => Number(val).toFixed(d);
 
-  body.innerHTML = `
-    <div class="lm-summary">
-      <p><strong>Session complete.</strong></p>
+  window.updateCodeDoses = function(){
+    const wt = parseFloat(document.getElementById('code-weight')?.value);
+    const strip = document.getElementById('dose-strip');
+    const content = document.getElementById('dose-strip-content');
+    const wtLabel = document.getElementById('dose-strip-wt');
+    const dh = document.getElementById('defib-dose-hint');
+    const ch = document.getElementById('cardio-dose-hint');
 
-      <div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--light);">
-        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">
-          Learner Information
+    if (!wt || wt <= 0) {
+      if (strip) strip.style.display = 'none';
+      if (dh) dh.textContent = 'Enter weight above to see calculated joules';
+      if (ch) ch.textContent = 'Start 0.5 J/kg → 1 J/kg → 2 J/kg if needed';
+      return;
+    }
+
+    window.codeWeight = wt;
+    if (strip) strip.style.display = 'block';
+    if (wtLabel) wtLabel.textContent = wt;
+
+    const doses = [
+      ['Epinephrine', `${fmt(cap(wt*0.01, adultCaps.epiMg),2)} mg IV/IO · max 1 mg`],
+      ['Defib 1st', `${fmt(cap(wt*2, adultCaps.defibFirst),0)} J · max 200 J`],
+      ['Defib Sub', `${fmt(cap(wt*4, adultCaps.defibNext),0)} J · max 200 J`],
+      ['Cardioversion', `${fmt(cap(wt*0.5, adultCaps.cardioversion),0)}–${fmt(cap(wt*2, adultCaps.cardioversion),0)} J · max 200 J`],
+      ['Atropine', `${fmt(cap(Math.max(wt*0.02,0.1), adultCaps.atropine),2)} mg · min 0.1 mg · max 1 mg`],
+      ['Fluid Bolus', `${fmt(cap(wt*20, adultCaps.fluidBolus),0)} mL · max 2000 mL`],
+      ['Bicarb', `${fmt(cap(wt*1, adultCaps.bicarb),0)} mEq · max 50 mEq`],
+      ['Ca Gluconate', `${fmt(cap(wt*100, adultCaps.caGlu),0)} mg · max 3000 mg`],
+      ['Ca Chloride', `${fmt(cap(wt*20, adultCaps.caCl),0)} mg · max 1000 mg`],
+      ['Amiodarone', `${fmt(cap(wt*5, adultCaps.amio),0)} mg · max 300 mg`],
+      ['Adenosine', `${fmt(cap(wt*0.1, adultCaps.adeno1),1)} mg first · ${fmt(cap(wt*0.2, adultCaps.adeno2),1)} mg second`],
+      ['Lidocaine', `${fmt(cap(wt*1, adultCaps.lido),0)} mg · max 100 mg`],
+      ['Magnesium', `${fmt(cap(wt*50, adultCaps.mag),0)} mg · max 2000 mg`]
+    ];
+
+    if (content) {
+      content.innerHTML = doses.map(([n,v]) =>
+        `<div style="background:rgba(255,255,255,0.06);border-radius:5px;padding:5px 8px;">
+          <div style="font-size:8.5px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;">${n}</div>
+          <div style="font-size:12px;font-weight:600;color:white;">${v}</div>
+        </div>`
+      ).join('');
+    }
+
+    if (dh) dh.textContent = `First: ${fmt(cap(wt*2, adultCaps.defibFirst),0)} J | Subsequent: ${fmt(cap(wt*4, adultCaps.defibNext),0)} J`;
+    if (ch) ch.textContent = `0.5 J/kg = ${fmt(cap(wt*0.5, adultCaps.cardioversion),0)} J | 1 J/kg = ${fmt(cap(wt*1, adultCaps.cardioversion),0)} J | 2 J/kg = ${fmt(cap(wt*2, adultCaps.cardioversion),0)} J`;
+  };
+
+  window.logMed = function(name, dose, key) {
+    const wt = parseFloat(document.getElementById('code-weight')?.value);
+    let finalDose = dose;
+
+    if (wt && wt > 0) {
+      const map = {
+        epi: `0.01 mg/kg IV/IO = ${fmt(cap(wt*0.01, adultCaps.epiMg),2)} mg · max 1 mg`,
+        atropine: `0.02 mg/kg IV/IO = ${fmt(cap(Math.max(wt*0.02,0.1), adultCaps.atropine),2)} mg · min 0.1 mg · max 1 mg`,
+        fluid: `20 mL/kg NS or LR = ${fmt(cap(wt*20, adultCaps.fluidBolus),0)} mL · max 2000 mL`,
+        bicarb: `1 mEq/kg IV = ${fmt(cap(wt*1, adultCaps.bicarb),0)} mEq · max 50 mEq`,
+        caglu: `60–100 mg/kg IV = ${fmt(cap(wt*60, adultCaps.caGlu),0)}–${fmt(cap(wt*100, adultCaps.caGlu),0)} mg · max 3000 mg`,
+        cacl: `20 mg/kg IV = ${fmt(cap(wt*20, adultCaps.caCl),0)} mg · max 1000 mg`,
+        amio: `5 mg/kg IV/IO = ${fmt(cap(wt*5, adultCaps.amio),0)} mg · max 300 mg`,
+        lido: `1 mg/kg IV/IO = ${fmt(cap(wt*1, adultCaps.lido),0)} mg · max 100 mg`,
+        adeno: `0.1 mg/kg rapid push = ${fmt(cap(wt*0.1, adultCaps.adeno1),1)} mg first dose · second dose ${fmt(cap(wt*0.2, adultCaps.adeno2),1)} mg`,
+        mag: `25–50 mg/kg IV = ${fmt(cap(wt*25, adultCaps.mag),0)}–${fmt(cap(wt*50, adultCaps.mag),0)} mg · max 2000 mg`
+      };
+      if (map[key]) finalDose = map[key];
+    }
+
+    if (key === 'epi') {
+      window.epiCount = (window.epiCount || 0) + 1;
+      logEvent(`Epinephrine #${window.epiCount} — ${finalDose}`);
+    } else {
+      logEvent(`${name} — ${finalDose}`);
+    }
+  };
+
+  window.logDefib = function(type) {
+    window.shockCount = (window.shockCount || 0) + 1;
+    const wt = parseFloat(document.getElementById('code-weight')?.value) || null;
+    const jkg = type === 'first' ? 2 : 4;
+    const joules = wt ? cap(wt * jkg, type === 'first' ? adultCaps.defibFirst : adultCaps.defibNext) : null;
+    logEvent(`Defibrillation Shock #${window.shockCount} — ${jkg} J/kg${joules !== null ? ` (${fmt(joules,0)} J, max 200 J)` : ''}`);
+  };
+
+  window.logCardioversion = function(jkg) {
+    window.cardioversionCount = (window.cardioversionCount || 0) + 1;
+    const wt = parseFloat(document.getElementById('code-weight')?.value) || null;
+    const joules = wt ? cap(wt * jkg, adultCaps.cardioversion) : null;
+    logEvent(`Synchronized Cardioversion #${window.cardioversionCount} — ${jkg} J/kg${joules !== null ? ` (${fmt(joules,0)} J, max 200 J)` : ''} — SYNCHRONIZED`);
+  };
+
+  window.calcResus = function() {
+    const wt = parseFloat(document.getElementById('weight-kg')?.value);
+    if (!wt || wt <= 0) return;
+
+    const epiMg = cap(wt * 0.01, 1);
+    const epiMl = cap(wt * 0.1, 10);
+    const firstShock = cap(wt * 2, 200);
+    const nextShock = cap(wt * 4, 200);
+    const ketLow = cap(wt * 1, 200);
+    const ketHigh = cap(wt * 2, 200);
+    const roc = cap(wt * 1.2, 100);
+    const fluid10 = cap(wt * 10, 1000);
+    const fluid20 = cap(wt * 20, 2000);
+    const loraz = cap(wt * 0.1, 4);
+    const midaz = cap(wt * 0.2, 10);
+    const keppra = cap(wt * 60, 4500);
+    const epiIM = cap(wt * 0.01, 0.5);
+    const diphen = cap(wt * 1, 50);
+    const estCuffedEtt = cap(((Math.floor(wt/2)*2)/4 + 3.5), 8.0);
+    const ettDepth = cap(estCuffedEtt * 3, 24);
+
+    const sections = [
+      {
+        title:'💊 Cardiac Arrest',
+        color:'#C0392B',
+        rows:[
+          {name:'Epinephrine IV/IO', val:fmt(epiMg,2), unit:'mg (0.01 mg/kg) · max 1 mg'},
+          {name:'Epinephrine (1:10,000)', val:fmt(epiMl,1), unit:'mL IV/IO · max 10 mL'}
+        ]
+      },
+      {
+        title:'⚡ Defibrillation',
+        color:'#B7791F',
+        rows:[
+          {name:'First shock', val:fmt(firstShock,0), unit:'J (2 J/kg) · max 200 J'},
+          {name:'Subsequent shocks', val:fmt(nextShock,0), unit:'J (4 J/kg) · max 200 J'}
+        ]
+      },
+      {
+        title:'✈️ Airway / RSI',
+        color:'#1A5276',
+        rows:[
+          {name:'Ketamine', val:`${fmt(ketLow,0)}–${fmt(ketHigh,0)}`, unit:'mg IV (1–2 mg/kg) · max 200 mg'},
+          {name:'Rocuronium', val:fmt(roc,1), unit:'mg IV (1.2 mg/kg) · max 100 mg'},
+          {name:'Cuffed ETT size', val:fmt(estCuffedEtt,1), unit:'mm estimated by weight · max 8.0 mm'},
+          {name:'ETT depth', val:fmt(ettDepth,1), unit:'cm estimated · cap 24 cm'}
+        ]
+      },
+      {
+        title:'💧 Resuscitation Fluids',
+        color:'#1B4332',
+        rows:[
+          {name:'Fluid bolus (10 mL/kg)', val:fmt(fluid10,0), unit:'mL NS/LR · max 1000 mL'},
+          {name:'Fluid bolus (20 mL/kg)', val:fmt(fluid20,0), unit:'mL NS/LR · max 2000 mL'}
+        ]
+      },
+      {
+        title:'🧠 Seizure Medications',
+        color:'#6B3FA0',
+        rows:[
+          {name:'Lorazepam IV/IO', val:fmt(loraz,2), unit:'mg (0.1 mg/kg) · max 4 mg'},
+          {name:'Midazolam IM/buccal', val:fmt(midaz,2), unit:'mg (0.2 mg/kg) · max 10 mg'},
+          {name:'Levetiracetam', val:fmt(keppra,0), unit:'mg IV over 15 min (60 mg/kg) · max 4500 mg'}
+        ]
+      },
+      {
+        title:'🩸 Anaphylaxis',
+        color:'#8B1A1A',
+        rows:[
+          {name:'Epinephrine IM (1:1000)', val:fmt(epiIM,2), unit:'mg IM thigh · max 0.5 mg'},
+          {name:'Diphenhydramine', val:fmt(diphen,0), unit:'mg IV/IM (1 mg/kg) · max 50 mg'}
+        ]
+      }
+    ];
+
+    let html = '';
+    sections.forEach(sec => {
+      html += `<div class="rr-section">
+        <div class="rr-section-head" style="background:${sec.color}18;border-bottom:1px solid ${sec.color}22;">
+          <span style="font-size:10px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:${sec.color};">${sec.title}</span>
         </div>
-        <p><strong>Learner ID:</strong> ${learnerId}</p>
-        <p><strong>PGY / Level:</strong> ${learnerPgy}</p>
-        <p><strong>Specialty:</strong> ${learnerSpecialty}</p>
-        <p><strong>Institution:</strong> ${learnerSite}</p>
+        <div class="rr-rows">`;
+
+      sec.rows.forEach(r => {
+        html += `<div class="rr-row">
+          <div class="rr-row-name">${r.name}</div>
+          <div>
+            <div class="rr-row-val" style="color:${sec.color};">${r.val}</div>
+            <div class="rr-row-unit">${r.unit}</div>
+          </div>
+        </div>`;
+      });
+
+      html += `</div></div>`;
+    });
+
+    html += `<div style="background:var(--amber-l);border:1px solid rgba(183,121,31,0.25);border-radius:10px;padding:13px 15px;font-size:11.5px;color:var(--amber);line-height:1.6;font-weight:500;">⚠️ Adult maximum dose/size caps applied where appropriate. Verify all doses with your team.</div>`;
+    document.getElementById('rr-results').innerHTML = html;
+  };
+
+  const QUIZ30 = [
+    {topic:'Respiratory', q:'Target tidal volume in pediatric ARDS?', options:['2–4 mL/kg','4–6 mL/kg','8–10 mL/kg','10–12 mL/kg'], correct:1, explain:'Use lung-protective ventilation; 4–6 mL/kg is the usual target in pediatric ARDS.'},
+    {topic:'Respiratory', q:'First-line escalation for bronchiolitis with moderate respiratory distress?', options:['Immediate intubation','HFNC','Inhaled nitric oxide','Chest physiotherapy'], correct:1, explain:'HFNC is a common first-line noninvasive escalation for bronchiolitis with increased work of breathing.'},
+    {topic:'Respiratory', q:'A sudden desaturation right after intubation should first trigger which bedside check?', options:['Send bronchoscopy','DOPE assessment','Start diuretics','Obtain MRI'], correct:1, explain:'Think DOPE: Dislodgement, Obstruction, Pneumothorax, Equipment failure.'},
+    {topic:'Respiratory', q:'Classic hemodynamic consequence of tension pneumothorax?', options:['Hypertension','Bradycardia only','Obstructive shock','Pulmonary edema'], correct:2, explain:'Tension pneumothorax causes impaired venous return and obstructive shock.'},
+    {topic:'Shock', q:'Initial crystalloid bolus in pediatric septic shock?', options:['5 mL/kg','10 mL/kg','20 mL/kg','40 mL/kg'], correct:2, explain:'A typical initial bolus is 20 mL/kg isotonic crystalloid, reassessing after each bolus.'},
+    {topic:'Shock', q:'Preferred first vasoactive for cold septic shock in many pediatric protocols?', options:['Epinephrine','Nitroprusside','Milrinone','Adenosine'], correct:0, explain:'Epinephrine is commonly favored for cold septic shock physiology.'},
+    {topic:'Shock', q:'Which finding best reflects poor perfusion?', options:['Warm hands','Brisk cap refill','Delayed cap refill','Normal pulse pressure'], correct:2, explain:'Delayed cap refill is a classic bedside sign of poor perfusion.'},
+    {topic:'Shock', q:'A rising lactate in shock most strongly suggests what?', options:['Improved perfusion','Tissue hypoperfusion','Viral infection only','Mild dehydration only'], correct:1, explain:'Elevated or rising lactate can reflect impaired oxygen delivery or shock burden.'},
+    {topic:'Neuro', q:'First-line medication for pediatric convulsive status epilepticus?', options:['Levetiracetam','Phenobarbital','Benzodiazepine','Valproate'], correct:2, explain:'A benzodiazepine is first-line initial therapy.'},
+    {topic:'Neuro', q:'Hypertonic saline commonly used for raised ICP in children is:', options:['0.9%','1.5%','3%','23.4% orally'], correct:2, explain:'3% saline is the common hypertonic saline concentration used in many PICUs.'},
+    {topic:'Neuro', q:'An early sign of rising ICP can be:', options:['Altered mental status','Isolated fever','Polyuria','Jaundice'], correct:0, explain:'Altered mental status may be an early sign before late bradycardia/hypertension appear.'},
+    {topic:'Neuro', q:'CPP is best summarized as:', options:['ICP − MAP','MAP − ICP','SBP + ICP','HR × BP'], correct:1, explain:'CPP = MAP − ICP.'},
+    {topic:'Metabolic', q:'Immediate therapy for hyperkalemia with ECG changes?', options:['Kayexalate first','IV calcium','Free water','Bicarbonate infusion only'], correct:1, explain:'IV calcium stabilizes the myocardium first.'},
+    {topic:'Metabolic', q:'Corrected sodium is especially useful in:', options:['Hyperglycemia','Hypocalcemia','Hypermagnesemia','Methemoglobinemia'], correct:0, explain:'Serum sodium should be corrected when marked hyperglycemia is present.'},
+    {topic:'Metabolic', q:'A high anion gap metabolic acidosis can result from:', options:['Lactic acidosis','Vomiting','Diuretic alkalosis','Hyperventilation'], correct:0, explain:'Lactic acidosis is a classic cause of high anion gap acidosis.'},
+    {topic:'Metabolic', q:'Initial priority in DKA management?', options:['Rapid bicarbonate','Fluid resuscitation','Insulin bolus','Loop diuretic'], correct:1, explain:'Careful fluid resuscitation comes first; avoid unnecessary insulin bolus.'},
+    {topic:'Toxicology', q:'Antidote for opioid overdose?', options:['Atropine','Naloxone','Flumazenil','Glucagon'], correct:1, explain:'Naloxone reverses opioid toxicity.'},
+    {topic:'Toxicology', q:'A key therapy in beta-blocker overdose is:', options:['Naloxone','Glucagon','Adenosine','Calcium chloride only'], correct:1, explain:'Glucagon is a classic rescue therapy in beta-blocker toxicity.'},
+    {topic:'Toxicology', q:'A major concern after venomous snake envenomation is:', options:['Coagulopathy','Hypernatremia','DKA','SVT'], correct:0, explain:'Coagulopathy is a major systemic complication in many snake envenomations.'},
+    {topic:'Toxicology', q:'Flumazenil should generally be used cautiously because it may:', options:['Cause pulmonary edema','Trigger seizures','Cause hyperkalemia','Worsen anemia'], correct:1, explain:'Flumazenil can precipitate seizures in mixed overdoses or benzodiazepine dependence.'},
+    {topic:'Trauma', q:'Initial airway approach in major trauma?', options:['Head tilt only','No oxygen','Cervical spine protection','Routine extubation'], correct:2, explain:'Airway management in trauma includes cervical spine protection.'},
+    {topic:'Trauma', q:'Best bedside imaging in unstable torso trauma?', options:['FAST exam','MRI','Swallow study','Bronchoscopy'], correct:0, explain:'FAST is rapid and practical in unstable trauma.'},
+    {topic:'Trauma', q:'Balanced blood product strategy refers to:', options:['Crystalloid only','1:1:1-style resuscitation concept','Albumin only','Platelets only'], correct:1, explain:'Massive transfusion often uses a balanced blood product strategy.'},
+    {topic:'Trauma', q:'A key sign of spinal cord injury is:', options:['Motor deficit','Hematemesis','Jaundice','Wheeze'], correct:0, explain:'New motor deficit should raise concern for spinal cord injury.'},
+    {topic:'Complex Care', q:'Most common trach emergency?', options:['Obstruction','Appendicitis','DKA','Pulmonary embolism'], correct:0, explain:'Trach obstruction is one of the most common and most urgent trach emergencies.'},
+    {topic:'Complex Care', q:'First step for suspected trach obstruction in a patient with an inner cannula?', options:['Ignore alarms','Remove inner cannula','Give adenosine','Start dialysis'], correct:1, explain:'Removing and checking the inner cannula is an immediate first step.'},
+    {topic:'Complex Care', q:'A common cause of home ventilator alarm is:', options:['Circuit disconnect','Migraine','Hyperthyroidism','Appendicitis'], correct:0, explain:'Check for disconnection, kink, leak, or power issues first.'},
+    {topic:'Complex Care', q:'A common G-tube complication is:', options:['Dislodgement','Aortic dissection','ARDS','Pneumomediastinum'], correct:0, explain:'Dislodgement is a frequent G-tube issue.'},
+    {topic:'PICU Core', q:'Hypotension in pediatric shock is often:', options:['An early finding','A late finding','Always absent','Only neurogenic'], correct:1, explain:'Children compensate for a long time; hypotension is often late.'},
+    {topic:'PICU Core', q:'After ROSC, avoid which oxygen strategy?', options:['Target SpO2 94–99%','Avoid hyperoxia','Persistent FiO2 100% without titration','Use ETCO2 monitoring'], correct:2, explain:'After ROSC, titrate oxygen and avoid prolonged hyperoxia.'}
+  ];
+
+  let learningState = null;
+
+  function shuffle(arr){
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function openLearningModal(){
+    const modal = document.getElementById('learning-modal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  window.closeLearningModal = function(){
+    const modal = document.getElementById('learning-modal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  function renderLearningQuestion(){
+    const body = document.getElementById('learning-modal-body');
+    if (!body || !learningState) return;
+
+    const q = learningState.session[learningState.index];
+    const pct = ((learningState.index) / learningState.session.length) * 100;
+
+    body.innerHTML = `
+      <div class="lm-meta">
+        <div><strong>Question ${learningState.index + 1}</strong> of ${learningState.session.length}</div>
+        <div>Score: ${learningState.correct}</div>
+      </div>
+      <div class="lm-bar"><div style="width:${pct}%"></div></div>
+      <div class="lm-topic">${q.topic}</div>
+      <div class="lm-q">${q.q}</div>
+      <div class="lm-options">
+        ${q.options.map((opt, i) => `<button class="lm-option" onclick="answerLearningQuestion(${i})">${opt}</button>`).join('')}
+      </div>
+      <div class="lm-explain" id="lm-explain"></div>
+      <div class="lm-actions">
+        <button class="lm-btn secondary" onclick="closeLearningModal()">Close</button>
+        <button class="lm-btn primary" id="lm-next" style="display:none" onclick="nextLearningQuestion()">Next Question →</button>
+      </div>
+    `;
+  }
+
+  function finishLearningSession(){
+    const body = document.getElementById('learning-modal-body');
+    if (!body || !learningState) return;
+
+    const weak = Object.entries(learningState.missedTopics)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(x => x[0]);
+
+    const minutes = Math.max(1, Math.round((Date.now() - learningState.startedAt) / 60000));
+
+    const learnerId =
+      document.getElementById('learner-name')?.value?.trim() ||
+      'Not entered';
+
+    const learnerPgy =
+      document.getElementById('learner-pgy')?.value ||
+      'Not entered';
+
+    const learnerSpecialty =
+      document.getElementById('learner-specialty')?.value ||
+      'Not entered';
+
+    const summary = {
+      learner_id: learnerId,
+      pgy_level: learnerPgy,
+      specialty: learnerSpecialty,
+      completedAt: new Date().toISOString(),
+      score: learningState.correct,
+      total: learningState.session.length,
+      time_minutes: minutes,
+      weak_topics: weak
+    };
+
+    localStorage.setItem('pedsicu_learning_data', JSON.stringify(summary));
+
+    body.innerHTML = `
+      <div class="lm-summary">
+        <p><strong>Session complete.</strong></p>
+
+        <div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--light);">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">
+            Learner Information
+          </div>
+          <p><strong>Learner ID:</strong> ${learnerId}</p>
+          <p><strong>PGY / Level:</strong> ${learnerPgy}</p>
+          <p><strong>Specialty:</strong> ${learnerSpecialty}</p>
+        </div>
+
+        <div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">
+            Quiz Results
+          </div>
+          <p><strong>Score:</strong> ${learningState.correct} / ${learningState.session.length}</p>
+          <p><strong>Time spent:</strong> ${minutes} minute(s)</p>
+          <p><strong>Weak topics:</strong> ${weak.length ? weak.join(', ') : 'None prominent'}</p>
+        </div>
+
+        <p style="margin-top:12px;"><strong>Recommendation:</strong> Review the corresponding clinical cards, then repeat the session.</p>
       </div>
 
-      <div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">
-          Quiz Results
-        </div>
-        <p><strong>Score:</strong> ${learningState.correct} / ${learningState.session.length}</p>
-        <p><strong>Time spent:</strong> ${minutes} minute(s)</p>
-        <p><strong>Weak topics:</strong> ${weak.length ? weak.join(', ') : 'None prominent'}</p>
+      <div class="lm-actions">
+        <button class="lm-btn secondary" onclick="closeLearningModal()">Close</button>
+        <button class="lm-btn primary" onclick="exportLearningData()">Export Study Data</button>
       </div>
+    `;
+  }
 
-      <p style="margin-top:12px;"><strong>Recommendation:</strong> Review the corresponding clinical cards, then repeat the session.</p>
-    </div>
+  window.startLearning = function(){
+    const learnerName = document.getElementById('learner-name')?.value.trim() || 'Anonymous';
+    const learnerPGY = document.getElementById('learner-pgy')?.value || 'Not specified';
+    const learnerSpecialty = document.getElementById('learner-specialty')?.value || 'Not specified';
 
-    <div class="lm-actions">
-      <button class="lm-btn secondary" onclick="closeLearningModal()">Close</button>
-      <button class="lm-btn primary" onclick="exportLearningData()">Export Study Data</button>
-    </div>
-  `;
-}
+    learningState = {
+      session: shuffle(QUIZ30).slice(0, 30),
+      index: 0,
+      correct: 0,
+      answered: false,
+      startedAt: Date.now(),
+      missedTopics: {},
+      learner: {
+        name: learnerName,
+        pgy: learnerPGY,
+        specialty: learnerSpecialty
+      }
+    };
+
+    openLearningModal();
+    renderLearningQuestion();
+  };
+
+  window.answerLearningQuestion = function(idx){
+    if (!learningState || learningState.answered) return;
+
+    learningState.answered = true;
+    const q = learningState.session[learningState.index];
+    const opts = document.querySelectorAll('#learning-modal .lm-option');
+
+    opts.forEach((opt, i) => {
+      if (i === q.correct) opt.classList.add('correct');
+      else if (i === idx) opt.classList.add('wrong');
+      opt.disabled = true;
+    });
+
+    if (idx === q.correct) {
+      learningState.correct++;
+    } else {
+      learningState.missedTopics[q.topic] = (learningState.missedTopics[q.topic] || 0) + 1;
+    }
+
+    const ex = document.getElementById('lm-explain');
+    if (ex) {
+      ex.textContent = q.explain;
+      ex.classList.add('show');
+    }
+
+    const next = document.getElementById('lm-next');
+    if (next) next.style.display = 'inline-block';
+  };
+
+  window.nextLearningQuestion = function(){
+    if (!learningState) return;
+
+    learningState.index++;
+    learningState.answered = false;
+
+    if (learningState.index >= learningState.session.length) {
+      finishLearningSession();
+      return;
+    }
+
+    renderLearningQuestion();
+  };
+
+  window.exportLearningData = function(){
+    const saved = localStorage.getItem('pedsicu_learning_data');
+    if (!saved) {
+      alert('No learning data found yet.');
+      return;
+    }
+
+    const data = JSON.parse(saved);
+
+    const rows = [
+      ['Learner ID', data.learner_id || ''],
+      ['PGY / Level', data.pgy_level || ''],
+      ['Specialty', data.specialty || ''],
+      ['Completed At', data.completedAt || ''],
+      ['Score', data.score || ''],
+      ['Total Questions', data.total || ''],
+      ['Time (minutes)', data.time_minutes || ''],
+      ['Weak Topics', Array.isArray(data.weak_topics) ? data.weak_topics.join('; ') : '']
+    ];
+
+    const csv = rows
+      .map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pedsicu_learning_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+})();
+</script>
+
 </script>
 
   window.startLearning = function(){
