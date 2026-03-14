@@ -1,11 +1,11 @@
 {
-  "id": "/",
+  "id": "/peds-icu-pocket/",
   "name": "Peds ICU Pocket",
   "short_name": "PICU Pocket",
   "description": "Pediatric critical care bedside reference, calculators, and learning tools.",
 
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/peds-icu-pocket/",
+  "scope": "/peds-icu-pocket/",
 
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
@@ -19,13 +19,13 @@
 
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/peds-icu-pocket/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/peds-icu-pocket/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
