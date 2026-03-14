@@ -1,4 +1,4 @@
-const CACHE_NAME = 'peds-icu-pocket-v1';
+const CACHE_NAME = 'peds-icu-pocket-v2';
 const urlsToCache = [
   './',
   './index.html',
