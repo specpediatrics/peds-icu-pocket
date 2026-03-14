@@ -2047,14 +2047,11 @@ let userName = 'Guest';
 // NAVIGATION
 // ═══════════════════════════════════════
 
-<script>
 /* ═══════════════════════════════════════
    NAVIGATION — HISTORY-BASED
    This fixes swipe-back so it goes to the previous in-app screen
    instead of closing the PWA immediately.
    ═══════════════════════════════════════ */
-
-let currentScreen = 'screen-home';
 
 const ROOT_SCREENS = {
   home: 'screen-home',
@@ -2090,8 +2087,7 @@ function setActiveNavByScreen(screenId) {
 function showScreen(screenId, options = {}) {
   const {
     pushHistory = true,
-    replaceHistory = false,
-    source = 'internal'
+    replaceHistory = false
   } = options;
 
   const nextScreen = document.getElementById(screenId);
@@ -2115,12 +2111,10 @@ function showScreen(screenId, options = {}) {
     renderProfile();
   }
 
-  // track page view for analytics
   if (typeof trackPageView === 'function') {
     trackPageView(screenId);
   }
 
-  // Build URL hash so browser/PWA has real navigation history
   const hash = '#' + screenId;
 
   if (replaceHistory) {
@@ -2138,8 +2132,6 @@ function goTo(screenId) {
 }
 
 function goBack() {
-  // If there is history, use it.
-  // If not, safely go to home instead of doing nothing.
   if (history.length > 1) {
     history.back();
   } else {
@@ -2166,7 +2158,6 @@ window.addEventListener('popstate', (event) => {
 
   showScreen(targetScreen, { pushHistory: false });
 });
-</script>
 
 
 // ═══════════════════════════════════════
@@ -2922,7 +2913,6 @@ function signInGoogle() {
 // INIT
 // ═══════════════════════════════════════
 
-<script>
 window.addEventListener('DOMContentLoaded', () => {
   try {
     if (localStorage.getItem('peds-icu-disc') === '1') {
@@ -2940,20 +2930,15 @@ window.addEventListener('DOMContentLoaded', () => {
   renderPearl();
   renderProfile();
 
-  // Decide initial screen from URL hash, if present
   const hashScreen = window.location.hash ? window.location.hash.replace('#', '') : '';
   const initialScreen = document.getElementById(hashScreen) ? hashScreen : 'screen-home';
 
-  // Make sure only one screen is active at startup
   document.querySelectorAll('.screen').forEach(screen => {
     screen.classList.remove('active');
   });
 
   showScreen(initialScreen, { pushHistory: false, replaceHistory: true });
 });
-</script>
-
-</script>
 
 <!-- ===== v11.9 FINAL PATCH: QUIZ BUTTON + ADULT CAPS ===== -->
 <style>
