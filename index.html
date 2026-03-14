@@ -399,7 +399,7 @@ function trackPageView(screenId) {
     <!-- ═══ MEDICATION DETAIL ═══ -->
     <div class="screen" id="screen-med-detail">
       <div class="top-bar">
-        <button class="back-btn" onclick="goTo('screen-meds')">&#x2039; Meds</button>
+        <button class="back-btn" onclick="goBack()">&#x2039; Back</button>
         <div class="top-bar-title" id="med-detail-title">Medication</div>
         <div style="width:60px;"></div>
       </div>
@@ -420,7 +420,7 @@ function trackPageView(screenId) {
     <!-- ═══ CLINICAL CARD DETAIL ═══ -->
     <div class="screen" id="screen-card-detail">
       <div class="top-bar">
-        <button class="back-btn" onclick="goTo('screen-cards')">‹ Cards</button>
+        <button class="back-btn" onclick="goBack()">‹ Back</button>
         <div class="top-bar-title" id="card-detail-title">Card</div>
         <div style="width:60px;"></div>
       </div>
@@ -2033,7 +2033,6 @@ const QUIZZES = [
 // ═══════════════════════════════════════
 
 let currentScreen = 'screen-home';
-let previousScreen = 'screen-home';
 let activeFilter = 'All';
 let timerInterval = null;
 let timerSeconds = 120;
@@ -2048,25 +2047,127 @@ let userName = 'Guest';
 // NAVIGATION
 // ═══════════════════════════════════════
 
-function goTo(screenId) {
-  previousScreen = currentScreen;
-  document.getElementById(currentScreen).classList.remove('active');
+<script>
+/* ═══════════════════════════════════════
+   NAVIGATION — HISTORY-BASED
+   This fixes swipe-back so it goes to the previous in-app screen
+   instead of closing the PWA immediately.
+   ═══════════════════════════════════════ */
+
+let currentScreen = 'screen-home';
+
+const ROOT_SCREENS = {
+  home: 'screen-home',
+  emergency: 'screen-resus',
+  calc: 'screen-calc',
+  learn: 'screen-learn',
+  profile: 'screen-profile'
+};
+
+const SCREEN_TO_NAV = {
+  'screen-home': 'home',
+  'screen-resus': 'emergency',
+  'screen-code': 'emergency',
+  'screen-meds': 'home',
+  'screen-med-detail': 'home',
+  'screen-cards': 'home',
+  'screen-card-detail': 'home',
+  'screen-calc': 'calc',
+  'screen-qr': 'home',
+  'screen-learn': 'learn',
+  'screen-profile': 'profile'
+};
+
+function setActiveNavByScreen(screenId) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navKey = SCREEN_TO_NAV[screenId];
+  if (navKey) {
+    const navBtn = document.getElementById('nav-' + navKey);
+    if (navBtn) navBtn.classList.add('active');
+  }
+}
+
+function showScreen(screenId, options = {}) {
+  const {
+    pushHistory = true,
+    replaceHistory = false,
+    source = 'internal'
+  } = options;
+
+  const nextScreen = document.getElementById(screenId);
+  const oldScreen = document.getElementById(currentScreen);
+
+  if (!nextScreen) return;
+
+  if (oldScreen && oldScreen.id !== screenId) {
+    oldScreen.classList.remove('active');
+  }
+
+  nextScreen.classList.add('active');
   currentScreen = screenId;
-  document.getElementById(screenId).classList.add('active');
-  document.getElementById('screen-area').scrollTop = 0;
+
+  const screenArea = document.getElementById('screen-area');
+  if (screenArea) screenArea.scrollTop = 0;
+
+  setActiveNavByScreen(screenId);
+
+  if (screenId === 'screen-profile') {
+    renderProfile();
+  }
+
+  // track page view for analytics
+  if (typeof trackPageView === 'function') {
+    trackPageView(screenId);
+  }
+
+  // Build URL hash so browser/PWA has real navigation history
+  const hash = '#' + screenId;
+
+  if (replaceHistory) {
+    history.replaceState({ screenId }, '', hash);
+  } else if (pushHistory) {
+    const currentStateScreen = history.state && history.state.screenId ? history.state.screenId : null;
+    if (currentStateScreen !== screenId) {
+      history.pushState({ screenId }, '', hash);
+    }
+  }
+}
+
+function goTo(screenId) {
+  showScreen(screenId, { pushHistory: true });
 }
 
 function goBack() {
-  goTo(previousScreen);
+  // If there is history, use it.
+  // If not, safely go to home instead of doing nothing.
+  if (history.length > 1) {
+    history.back();
+  } else {
+    showScreen('screen-home', { pushHistory: false, replaceHistory: true });
+  }
 }
 
 function navTo(section) {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const map = { home:'screen-home', emergency:'screen-resus', calc:'screen-calc', learn:'screen-learn', profile:'screen-profile' };
-  document.getElementById('nav-' + section).classList.add('active');
-  if (section === 'profile') renderProfile();
-  goTo(map[section]);
+  const target = ROOT_SCREENS[section] || 'screen-home';
+  showScreen(target, { pushHistory: true });
 }
+
+window.addEventListener('popstate', (event) => {
+  const stateScreen = event.state && event.state.screenId ? event.state.screenId : null;
+  const hashScreen = window.location.hash ? window.location.hash.replace('#', '') : null;
+
+  let targetScreen = 'screen-home';
+
+  if (stateScreen && document.getElementById(stateScreen)) {
+    targetScreen = stateScreen;
+  } else if (hashScreen && document.getElementById(hashScreen)) {
+    targetScreen = hashScreen;
+  }
+
+  showScreen(targetScreen, { pushHistory: false });
+});
+</script>
+
 
 // ═══════════════════════════════════════
 // DISCLAIMER
@@ -2821,6 +2922,7 @@ function signInGoogle() {
 // INIT
 // ═══════════════════════════════════════
 
+<script>
 window.addEventListener('DOMContentLoaded', () => {
   try {
     if (localStorage.getItem('peds-icu-disc') === '1') {
@@ -2837,7 +2939,20 @@ window.addEventListener('DOMContentLoaded', () => {
   renderMedList();
   renderPearl();
   renderProfile();
+
+  // Decide initial screen from URL hash, if present
+  const hashScreen = window.location.hash ? window.location.hash.replace('#', '') : '';
+  const initialScreen = document.getElementById(hashScreen) ? hashScreen : 'screen-home';
+
+  // Make sure only one screen is active at startup
+  document.querySelectorAll('.screen').forEach(screen => {
+    screen.classList.remove('active');
+  });
+
+  showScreen(initialScreen, { pushHistory: false, replaceHistory: true });
 });
+</script>
+
 </script>
 
 <!-- ===== v11.9 FINAL PATCH: QUIZ BUTTON + ADULT CAPS ===== -->
