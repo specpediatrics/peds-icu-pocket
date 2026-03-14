@@ -2132,7 +2132,7 @@ function goTo(screenId) {
 }
 
 function goBack() {
-  if (history.length > 1) {
+  if (currentScreen !== 'screen-home') {
     history.back();
   } else {
     showScreen('screen-home', { pushHistory: false, replaceHistory: true });
@@ -2930,14 +2930,31 @@ window.addEventListener('DOMContentLoaded', () => {
   renderPearl();
   renderProfile();
 
-  const hashScreen = window.location.hash ? window.location.hash.replace('#', '') : '';
-  const initialScreen = document.getElementById(hashScreen) ? hashScreen : 'screen-home';
+  const hashScreen = window.location.hash
+    ? window.location.hash.replace('#', '')
+    : '';
+
+  const initialScreen = document.getElementById(hashScreen)
+    ? hashScreen
+    : 'screen-home';
 
   document.querySelectorAll('.screen').forEach(screen => {
     screen.classList.remove('active');
   });
 
   showScreen(initialScreen, { pushHistory: false, replaceHistory: true });
+
+  history.replaceState({ screenId: initialScreen }, '', '#' + initialScreen);
+
+  setTimeout(() => {
+    if (!history.state || history.state.screenId !== initialScreen || !history.state.rootBuffer) {
+      history.pushState(
+        { screenId: initialScreen, rootBuffer: true },
+        '',
+        '#' + initialScreen
+      );
+    }
+  }, 0);
 });
 </script>
 
