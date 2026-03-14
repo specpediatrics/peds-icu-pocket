@@ -1006,8 +1006,41 @@
     <div class="quiz-fix-card" style="margin-top:16px;">
       <h3 style="margin-bottom:8px;">30-Question Session</h3>
       <p style="font-size:13px;color:var(--muted);line-height:1.6;">Complete a high-yield board-style learning session in about 10 minutes. Adaptive reinforcement repeats weak topics and generates a completion summary for research use.</p>
-      <button onclick="startLearning()">Start 30-Question Session</button>
-    </div>
+      
+      <div class="research-mini-form" style="margin:14px 0 12px;display:grid;gap:10px;">
+  <input type="text" id="learner-name" placeholder="Learner name or ID"
+    style="width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:14px;">
+  
+  <select id="learner-pgy"
+    style="width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:14px;background:white;">
+    <option value="">Select PGY / level</option>
+    <option value="Medical Student">Medical Student</option>
+    <option value="PGY1">PGY1</option>
+    <option value="PGY2">PGY2</option>
+    <option value="PGY3">PGY3</option>
+    <option value="PGY4+">PGY4+</option>
+    <option value="Fellow">Fellow</option>
+    <option value="Attending">Attending</option>
+    <option value="APP">APP</option>
+    <option value="RN/RT">RN/RT</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <select id="learner-specialty"
+    style="width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:14px;background:white;">
+    <option value="">Select specialty</option>
+    <option value="Pediatrics">Pediatrics</option>
+    <option value="Pediatric Critical Care">Pediatric Critical Care</option>
+    <option value="Pediatric Pulmonology">Pediatric Pulmonology</option>
+    <option value="Emergency Medicine">Emergency Medicine</option>
+    <option value="Nursing">Nursing</option>
+    <option value="Respiratory Therapy">Respiratory Therapy</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
+      
+<button onclick="startLearning()">Start 30-Question Session</button>
+</div>
 
     <div class="quiz-launch" style="margin-top:16px;">
       <h3 style="margin-bottom:6px;">Question Bank</h3>
