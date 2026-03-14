@@ -38,6 +38,21 @@
 
     <div class="home-disclaimer">Educational reference only. Not a substitute for clinical judgment, attending supervision, or institutional protocols.</div>
 
+    <div class="install-banner" id="install-banner" style="display:none;">
+  <div class="install-banner-copy">
+    <div class="install-banner-kicker">Install App</div>
+    <div class="install-banner-title">Add Peds ICU Pocket to your device</div>
+    <div class="install-banner-sub" id="install-banner-sub">
+      Faster access, app-like experience, and home screen launch.
+    </div>
+  </div>
+  <button id="installBtn" class="install-app-btn" type="button" style="display:none;">
+    Install
+  </button>
+  <button id="iosInstallBtn" class="install-app-btn secondary" type="button" style="display:none;">
+    How to Install
+  </button>
+</div>
     <div class="emerg-grid" style="grid-template-columns:1fr 1fr;gap:12px;">
       <button class="emerg-btn" onclick="goTo('screen-resus')" style="min-height:108px;">
         <span class="emerg-icon">⚡</span>
@@ -3038,7 +3053,6 @@ window.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  <script>
 function finishLearningSession(){
   const body = document.getElementById('learning-modal-body');
   if (!body || !learningState) return;
@@ -3166,7 +3180,6 @@ function finishLearningSession(){
     renderLearningQuestion();
   };
 
-  <script>
 window.exportLearningData = function(){
   const saved = localStorage.getItem('pedsicu_learning_data');
   if (!saved) {
@@ -3401,6 +3414,99 @@ window.exportLearningData = function(){
 })();
 </script>
 <!-- ===== END v11.8.1 ===== -->
+<script>
+let deferredPrompt = null;
 
+function isIos() {
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+}
+
+function isInStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function showInstallUI(mode = 'android') {
+  const banner = document.getElementById('install-banner');
+  const installBtn = document.getElementById('installBtn');
+  const iosBtn = document.getElementById('iosInstallBtn');
+  const sub = document.getElementById('install-banner-sub');
+
+  if (!banner || !installBtn || !iosBtn || !sub) return;
+
+  banner.style.display = 'flex';
+
+  if (mode === 'ios') {
+    installBtn.style.display = 'none';
+    iosBtn.style.display = 'inline-flex';
+    sub.textContent = 'On iPhone/iPad, tap Share → Add to Home Screen.';
+  } else {
+    installBtn.style.display = 'inline-flex';
+    iosBtn.style.display = 'none';
+    sub.textContent = 'Faster access, app-like experience, and home screen launch.';
+  }
+}
+
+function hideInstallUI() {
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  if (!isInStandaloneMode()) {
+    showInstallUI('android');
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  hideInstallUI();
+  console.log('PWA installed');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const installBtn = document.getElementById('installBtn');
+  const iosBtn = document.getElementById('iosInstallBtn');
+
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+
+      deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      console.log('Install choice:', choiceResult.outcome);
+
+      deferredPrompt = null;
+      if (choiceResult.outcome === 'accepted') {
+        hideInstallUI();
+      }
+    });
+  }
+
+  if (iosBtn) {
+    iosBtn.addEventListener('click', () => {
+      alert('To install on iPhone or iPad:\n\n1. Open this site in Safari\n2. Tap the Share button\n3. Tap "Add to Home Screen"\n4. Tap "Add"');
+    });
+  }
+
+  if (!isInStandaloneMode() && isIos()) {
+    showInstallUI('ios');
+  }
+});
+</script>
+  <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('./service-worker.js');
+      console.log('Service worker registered:', registration.scope);
+    } catch (error) {
+      console.error('Service worker registration failed:', error);
+    }
+  });
+}
+</script>
 </body>
 </html>
