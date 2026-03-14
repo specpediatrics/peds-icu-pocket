@@ -2062,3 +2062,28 @@ body{
   color:#0f172a;
   display:none;
 }
+/* MOBILE READABILITY IMPROVEMENT */
+html{
+  font-size:17px;
+}
+
+@media (max-width: 640px){
+  .home-app-name{font-size:1.7rem !important;}
+  .home-app-sub{font-size:0.98rem !important; line-height:1.4;}
+  .home-disclaimer{font-size:0.98rem !important; line-height:1.6;}
+  .sec-title{font-size:1.35rem !important;}
+  .sec-ct{font-size:0.78rem !important;}
+  .pw-name{font-size:1.2rem !important;}
+  .pw-sub{font-size:1rem !important; line-height:1.35;}
+  .tc-name{font-size:1.1rem !important;}
+  .tc-sub{font-size:0.95rem !important; line-height:1.35;}
+  .emerg-name{font-size:1.15rem !important;}
+  .emerg-desc{font-size:0.95rem !important;}
+  .nav-label{font-size:0.78rem !important;}
+  .top-bar-title{font-size:1.3rem !important;}
+  .calc-head-name{font-size:1.1rem !important;}
+  .calc-field label{font-size:0.82rem !important;}
+  .qr-head-title{font-size:1.08rem !important;}
+  .qr-table td{font-size:0.98rem !important;}
+  .qr-table th{font-size:0.78rem !important;}
+}
