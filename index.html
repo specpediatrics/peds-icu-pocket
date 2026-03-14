@@ -3030,27 +3030,81 @@ window.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  function finishLearningSession(){
-    const body = document.getElementById('learning-modal-body');
-    if (!body || !learningState) return;
-    const weak = Object.entries(learningState.missedTopics).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
-    const minutes = Math.max(1, Math.round((Date.now()-learningState.startedAt)/60000));
-   const summary = {
-    localStorage.setItem('pedsicu_learning_data', JSON.stringify(summary));
-   body.innerHTML = `
-  <div class="lm-summary">
-    <p><strong>Session complete.</strong></p>
-    <p><strong>Learner:</strong> ${learningState.learner?.name || 'Anonymous'}</p>
-    <p><strong>Level:</strong> ${learningState.learner?.pgy || 'Not specified'}</p>
-    <p><strong>Specialty:</strong> ${learningState.learner?.specialty || 'Not specified'}</p>
-    <p><strong>Score:</strong> ${learningState.correct} / ${learningState.session.length}</p>
-    <p><strong>Time spent:</strong> ${minutes} minute(s)</p>
-    <p><strong>Weak topics:</strong> ${weak.length ? weak.join(', ') : 'None prominent'}</p>
-    <p><strong>Recommendation:</strong> Review the corresponding clinical cards, then repeat the session.</p>
-  </div>
-      <div class="lm-actions"><button class="lm-btn secondary" onclick="closeLearningModal()">Close</button><button class="lm-btn primary" onclick="exportLearningData()">Export Study Data</button></div>
-    `;
-  }
+  <script>
+function finishLearningSession(){
+  const body = document.getElementById('learning-modal-body');
+  if (!body || !learningState) return;
+
+  const weak = Object.entries(learningState.missedTopics)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5)
+    .map(x=>x[0]);
+
+  const minutes = Math.max(1, Math.round((Date.now()-learningState.startedAt)/60000));
+
+  const learnerId =
+    document.getElementById('spec-learner-id')?.value?.trim() ||
+    'Not entered';
+
+  const learnerPgy =
+    document.getElementById('spec-learner-pgy')?.value ||
+    'Not entered';
+
+  const learnerSpecialty =
+    document.getElementById('spec-learner-specialty')?.value ||
+    'Not entered';
+
+  const learnerSite =
+    document.getElementById('spec-learner-site')?.value?.trim() ||
+    'Not entered';
+
+  const summary = {
+    learner_id: learnerId,
+    pgy_level: learnerPgy,
+    specialty: learnerSpecialty,
+    institution: learnerSite,
+    completedAt: new Date().toISOString(),
+    score: learningState.correct,
+    total: learningState.session.length,
+    time_minutes: minutes,
+    weak_topics: weak
+  };
+
+  localStorage.setItem('pedsicu_learning_data', JSON.stringify(summary));
+
+  body.innerHTML = `
+    <div class="lm-summary">
+      <p><strong>Session complete.</strong></p>
+
+      <div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--light);">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">
+          Learner Information
+        </div>
+        <p><strong>Learner ID:</strong> ${learnerId}</p>
+        <p><strong>PGY / Level:</strong> ${learnerPgy}</p>
+        <p><strong>Specialty:</strong> ${learnerSpecialty}</p>
+        <p><strong>Institution:</strong> ${learnerSite}</p>
+      </div>
+
+      <div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">
+          Quiz Results
+        </div>
+        <p><strong>Score:</strong> ${learningState.correct} / ${learningState.session.length}</p>
+        <p><strong>Time spent:</strong> ${minutes} minute(s)</p>
+        <p><strong>Weak topics:</strong> ${weak.length ? weak.join(', ') : 'None prominent'}</p>
+      </div>
+
+      <p style="margin-top:12px;"><strong>Recommendation:</strong> Review the corresponding clinical cards, then repeat the session.</p>
+    </div>
+
+    <div class="lm-actions">
+      <button class="lm-btn secondary" onclick="closeLearningModal()">Close</button>
+      <button class="lm-btn primary" onclick="exportLearningData()">Export Study Data</button>
+    </div>
+  `;
+}
+</script>
 
   window.startLearning = function(){
   const learnerName = document.getElementById('learner-name')?.value.trim() || 'Anonymous';
@@ -3104,18 +3158,41 @@ window.addEventListener('DOMContentLoaded', () => {
     renderLearningQuestion();
   };
 
-  window.exportLearningData = function(){
-    const data = localStorage.getItem('pedsicu_learning_data') || '{}';
-    const blob = new Blob([data], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'pedsicu_learning_data.json';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
-})();
-</script>
+  <script>
+window.exportLearningData = function(){
+  const saved = localStorage.getItem('pedsicu_learning_data');
+  if (!saved) {
+    alert('No learning data found yet.');
+    return;
+  }
 
+  const data = JSON.parse(saved);
+
+  const rows = [
+    ['Learner ID', data.learner_id || ''],
+    ['PGY / Level', data.pgy_level || ''],
+    ['Specialty', data.specialty || ''],
+    ['Institution', data.institution || ''],
+    ['Completed At', data.completedAt || ''],
+    ['Score', data.score || ''],
+    ['Total Questions', data.total || ''],
+    ['Time (minutes)', data.time_minutes || ''],
+    ['Weak Topics', Array.isArray(data.weak_topics) ? data.weak_topics.join('; ') : '']
+  ];
+
+  const csv = rows
+    .map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pedsicu_learning_data.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+</script>
 
 
 <!-- ===== v11.8 QUIZ BUTTON RESCUE PATCH ===== -->
