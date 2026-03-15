@@ -911,19 +911,85 @@ function trackPageView(screenId) {
       </div>
     </div>
 
-    <div class="qr-card">
-      <div class="qr-head"><span class="qr-head-icon">💓</span><span class="qr-head-title">Normal Vital Signs by Age</span></div>
-      <table class="qr-table">
-        <tr><th>Age</th><th>HR</th><th>RR</th><th>SBP</th></tr>
-        <tr><td>Neonate</td><td>100–180</td><td>30–60</td><td>60–80</td></tr>
-        <tr><td>Infant</td><td>100–160</td><td>30–50</td><td>70–90</td></tr>
-        <tr><td>Toddler</td><td>90–150</td><td>24–40</td><td>80–100</td></tr>
-        <tr><td>Preschool</td><td>80–140</td><td>22–34</td><td>80–110</td></tr>
-        <tr><td>School age</td><td>70–120</td><td>18–30</td><td>90–120</td></tr>
-        <tr><td>Adolescent</td><td>60–100</td><td>12–20</td><td>100–130</td></tr>
-      </table>
-      <div style="margin-top:10px;font-size:12px;color:#7b8794;">Use age-based trends and clinical context; hypotension is a late sign in pediatric shock.</div>
-    </div>
+   <div class="qr-card">
+  <div class="qr-head">
+    <span class="qr-head-icon">💓</span>
+    <span class="qr-head-title">Normal Vital Signs by Age</span>
+  </div>
+
+  <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <table class="qr-table" style="min-width:700px;">
+      <tr>
+        <th>Age</th>
+        <th>HR</th>
+        <th>RR</th>
+        <th>SBP</th>
+        <th>DBP</th>
+        <th>MAP</th>
+        <th>Temp</th>
+      </tr>
+      <tr>
+        <td>Neonate</td>
+        <td>100–180</td>
+        <td>30–60</td>
+        <td>60–80</td>
+        <td>30–45</td>
+        <td>45–55</td>
+        <td>36.5–37.5°C</td>
+      </tr>
+      <tr>
+        <td>Infant</td>
+        <td>100–160</td>
+        <td>30–50</td>
+        <td>70–90</td>
+        <td>35–55</td>
+        <td>50–65</td>
+        <td>36.5–37.5°C</td>
+      </tr>
+      <tr>
+        <td>Toddler</td>
+        <td>90–150</td>
+        <td>24–40</td>
+        <td>80–100</td>
+        <td>40–60</td>
+        <td>55–70</td>
+        <td>36.5–37.5°C</td>
+      </tr>
+      <tr>
+        <td>Preschool</td>
+        <td>80–140</td>
+        <td>22–34</td>
+        <td>80–110</td>
+        <td>45–65</td>
+        <td>60–75</td>
+        <td>36.5–37.5°C</td>
+      </tr>
+      <tr>
+        <td>School age</td>
+        <td>70–120</td>
+        <td>18–30</td>
+        <td>90–120</td>
+        <td>50–70</td>
+        <td>65–80</td>
+        <td>36.5–37.5°C</td>
+      </tr>
+      <tr>
+        <td>Adolescent</td>
+        <td>60–100</td>
+        <td>12–20</td>
+        <td>100–130</td>
+        <td>60–80</td>
+        <td>70–90</td>
+        <td>36.5–37.5°C</td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="margin-top:10px;font-size:12px;color:#7b8794;">
+    Swipe left/right on the table to see more columns. Use age trends and clinical context; hypotension is a late sign in pediatric shock.
+  </div>
+</div>
+
 
     <div class="qr-card">
       <div class="qr-head"><span class="qr-head-icon">🫁</span><span class="qr-head-title">Airway & Suction</span></div>
@@ -968,17 +1034,57 @@ function trackPageView(screenId) {
       <div style="margin-top:10px;font-size:12px;color:#7b8794;">Select the smallest effective tube when clinically appropriate.</div>
     </div>
 
-    <div class="qr-card">
-      <div class="qr-head"><span class="qr-head-icon">🩸</span><span class="qr-head-title">Lines & Needles by Age</span></div>
-      <table class="qr-table">
-        <tr><th>Age</th><th>Arterial Line</th><th>Central Line</th><th>Spinal Needle</th></tr>
-        <tr><td>Neonate</td><td>24–26G</td><td>3–4 Fr</td><td>22–25G</td></tr>
-        <tr><td>Infant</td><td>22–24G</td><td>4 Fr</td><td>22–25G</td></tr>
-        <tr><td>Child</td><td>20–22G</td><td>4–5 Fr</td><td>22G</td></tr>
-        <tr><td>Adolescent</td><td>18–20G</td><td>5–7 Fr</td><td>20–22G</td></tr>
-      </table>
-      <div style="margin-top:10px;font-size:12px;color:#7b8794;">Final device choice depends on patient size, indication, site, and institutional equipment.</div>
-    </div>
+   <div class="qr-card">
+  <div class="qr-head">
+    <span class="qr-head-icon">🩸</span>
+    <span class="qr-head-title">Lines & Needles by Age</span>
+  </div>
+
+  <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <table class="qr-table" style="min-width:760px;">
+      <tr>
+        <th>Age</th>
+        <th>Arterial Line</th>
+        <th>Central Line</th>
+        <th>PICC Line</th>
+        <th>Spinal Needle</th>
+      </tr>
+      <tr>
+        <td>Neonate</td>
+        <td>24–26G</td>
+        <td>3–4 Fr</td>
+        <td>1.9–2.6 Fr</td>
+        <td>22–25G</td>
+      </tr>
+      <tr>
+        <td>Infant</td>
+        <td>22–24G</td>
+        <td>4 Fr</td>
+        <td>2.6–3 Fr</td>
+        <td>22–25G</td>
+      </tr>
+      <tr>
+        <td>Child</td>
+        <td>20–22G</td>
+        <td>4–5 Fr</td>
+        <td>3–4 Fr</td>
+        <td>22G</td>
+      </tr>
+      <tr>
+        <td>Adolescent</td>
+        <td>18–20G</td>
+        <td>5–7 Fr</td>
+        <td>4–5 Fr</td>
+        <td>20–22G</td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="margin-top:10px;font-size:12px;color:#7b8794;">
+    Swipe left/right to view all columns. Final device choice depends on patient size, indication, site, and institutional equipment.
+  </div>
+</div>
+
 
     <div class="qr-card">
       <div class="qr-head"><span class="qr-head-icon">🧠</span><span class="qr-head-title">Bladder & Gastric Capacity</span></div>
