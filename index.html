@@ -2943,6 +2943,18 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   showScreen(initialScreen, { pushHistory: false, replaceHistory: true });
+  history.replaceState({ screenId: initialScreen }, '', '#' + initialScreen);
+
+setTimeout(() => {
+  if (!history.state || history.state.screenId !== initialScreen || !history.state.rootBuffer) {
+    history.pushState(
+      { screenId: initialScreen, rootBuffer: true },
+      '',
+      '#' + initialScreen
+    );
+  }
+}, 0);
+
 
   history.replaceState({ screenId: initialScreen }, '', '#' + initialScreen);
 
