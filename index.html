@@ -1364,12 +1364,33 @@ const CARDS = [
    pearls:['Hypoactive delirium is more common and more missed than hyperactive','Benzodiazepines worsen delirium — avoid in PICU unless treating seizure or withdrawal','Family presence is the most powerful non-pharmacologic intervention']},
 
   // ── RESPIRATORY ──
-  {id:'arf',name:'Acute Respiratory Failure',category:'Respiratory',color:'#1A5276',
-   recognition:['Increased WOB: retractions, nasal flaring, grunting, accessory muscle use','Tachypnea for age','SpO₂ <92% on room air or high FiO₂ requirement','PaO₂/FiO₂ <300 (mild), <200 (moderate), <100 (severe)','Respiratory fatigue: paradoxical breathing, diminishing effort — impending arrest'],
-   actions:['High-flow oxygen immediately','Positioning: upright, allow comfort position in young children','Assess for reversible causes: bronchospasm, effusion, pneumothorax','HFNC or NIV for hypoxemic failure without immediate intubation need','Prepare for intubation if deteriorating rapidly'],
-   management:['HFNC: start 1–2 L/kg/min, FiO₂ to maintain SpO₂ >94%','NIV BiPAP: initial IPAP 12–16, EPAP 5–8, titrate to comfort and SpO₂','Intubation if: apnea, GCS ≤8, failure of NIV, cardiovascular instability','Post-intubation: lung-protective TV 6 mL/kg IBW, PEEP per ARDSnet','Continuous waveform capnography preferred'],
-   meds:[{name:'Albuterol',dose:'0.15 mg/kg neb q20min ×3 (min 2.5 mg)'},{name:'Ipratropium',dose:'0.25–0.5 mg neb q4–6h'},{name:'Ketamine (RSI)',dose:'1–2 mg/kg IV'},{name:'Rocuronium (RSI)',dose:'1.2 mg/kg IV'},{name:'Methylprednisolone (airway/asthma)',dose:'1–2 mg/kg IV q6h'}],
-   pearls:['Children have small FRC and high O₂ demand — desaturate far faster than adults','HFNC trial is appropriate before intubation in most children with ARF','Post-extubation stridor: racemic epinephrine neb + dexamethasone 0.6 mg/kg IV']},
+ {id:'arf',name:'Acute Respiratory Failure',category:'Respiratory',color:'#1A5276',
+  recognition:[
+    'Increased work of breathing: retractions, nasal flaring, grunting, head bobbing, accessory muscle use',
+    'Tachypnea for age or irregular/ineffective respirations',
+    'Hypoxemia: SpO₂ <92% on room air or increasing oxygen requirement',
+    'Hypercapnia/ventilatory failure: rising PaCO₂, poor air entry, altered mental status',
+    'Impending arrest: apnea, bradypnea, paradoxical breathing, exhaustion, cyanosis, diminished responsiveness'
+  ],
+  actions:[
+    'Open airway, position for comfort, suction as needed, apply cardiorespiratory monitoring',
+    'Give supplemental oxygen immediately and escalate based on severity',
+    'Rapidly assess likely cause: lower airway obstruction, upper airway obstruction, parenchymal lung disease, pleural disease, neuromuscular/CNS, cardiac/pulmonary vascular',
+    'Look for reversible emergencies: pneumothorax, mucus plugging, airway edema, foreign body, equipment failure',
+    'Call for senior help early and prepare for escalation if worsening'
+  ],
+  management:[
+    'Low-flow oxygen or nonrebreather for mild to moderate hypoxemia; escalate promptly if not improving',
+    'HFNC: start 1–2 L/kg/min, titrate FiO₂ to target SpO₂ and reduce work of breathing',
+    'NIV (CPAP/BiPAP) for selected patients with increased work of breathing or hypercapnia who are protecting airway and hemodynamically stable',
+    'Intubation if apnea, severe fatigue, worsening mental status, refractory hypoxemia/hypercapnia, or cardiovascular instability',
+    'After intubation, use cause-specific ventilator strategy and continuous waveform capnography when available'
+  ],
+  pearls:[
+    'Acute respiratory failure is a syndrome — treatment depends on the underlying cause, not one universal medication list',
+    'Children have small functional residual capacity and high oxygen consumption, so decompensation can be rapid',
+    'Use cause-based pathways for treatment: Asthma/Bronchospasm, Bronchiolitis, Croup/Upper Airway Obstruction, Pneumonia/ARDS, Anaphylaxis, Neuromuscular/CNS, Pulmonary Hypertension/Cardiac'
+  ]},
 
   {id:'ards',name:'Pediatric ARDS',category:'Respiratory',color:'#1A5276',
    recognition:['Within 7 days of known clinical insult','Bilateral opacities not explained by effusion or atelectasis','Hypoxemia: OI ≥4 (mild), ≥8 (moderate), ≥16 (severe) or PF ratio <300/<200/<100','Not fully explained by cardiac failure or fluid overload'],
