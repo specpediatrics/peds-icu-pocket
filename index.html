@@ -2678,15 +2678,17 @@ function filterCards(cat) {
 function openCard(id) {
   const card = CARDS.find(c => c.id === id);
   if (!card) return;
+
   document.getElementById('card-detail-title').textContent = card.name;
 
-  const sectionColor = card.color;
   let html = '';
+  const meds = Array.isArray(card.meds) ? card.meds : [];
+  const pearls = Array.isArray(card.pearls) ? card.pearls : [];
 
   const sections = [
-    { icon:'🔍', title:'Recognition', color:'#1A5276', items: card.recognition },
-    { icon:'⚡', title:'Immediate Actions', color:'#C0392B', items: card.actions },
-    { icon:'📋', title:'Key Management', color:'#1B4332', items: card.management },
+    { icon:'🔍', title:'Recognition', color:'#1A5276', items: card.recognition || [] },
+    { icon:'⚡', title:'Immediate Actions', color:'#C0392B', items: card.actions || [] },
+    { icon:'📋', title:'Key Management', color:'#1B4332', items: card.management || [] },
   ];
 
   sections.forEach(sec => {
@@ -2696,30 +2698,39 @@ function openCard(id) {
         <span class="cd-sec-title" style="color:${sec.color};">${sec.title}</span>
       </div>
       <div class="cd-body">
-        ${sec.items.map(i=>`<div class="cd-item">${i}</div>`).join('')}
+        ${sec.items.map(i => `<div class="cd-item">${i}</div>`).join('')}
       </div>
     </div>`;
   });
 
-  html += `<div class="cd-section">
-    <div class="cd-sec-head" style="background:#8B1A1A12;border-bottom:1px solid #8B1A1A18;">
-      <span class="cd-sec-icon">💊</span>
-      <span class="cd-sec-title" style="color:#8B1A1A;">Medication Dosing</span>
-    </div>
-    <div class="cd-body">
-      ${card.meds.map(m=>`<div class="cd-item"><strong>${m.name}</strong><br><span class="cd-dose">${m.dose}</span></div>`).join('')}
-    </div>
-  </div>`;
+  if (meds.length > 0) {
+    html += `<div class="cd-section">
+      <div class="cd-sec-head" style="background:#8B1A1A12;border-bottom:1px solid #8B1A1A18;">
+        <span class="cd-sec-icon">💊</span>
+        <span class="cd-sec-title" style="color:#8B1A1A;">Medication Dosing</span>
+      </div>
+      <div class="cd-body">
+        ${meds.map(m => `
+          <div class="cd-item">
+            <strong>${m.name}</strong><br>
+            <span class="cd-dose">${m.dose}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
 
-  html += `<div class="cd-section">
-    <div class="cd-sec-head" style="background:#C9A84C18;border-bottom:1px solid #C9A84C25;">
-      <span class="cd-sec-icon">⭐</span>
-      <span class="cd-sec-title" style="color:#B7791F;">Clinical Pearls</span>
-    </div>
-    <div class="cd-body">
-      ${card.pearls.map(p=>`<div class="pearl-item"><span class="pearl-star">★</span>${p}</div>`).join('')}
-    </div>
-  </div>`;
+  if (pearls.length > 0) {
+    html += `<div class="cd-section">
+      <div class="cd-sec-head" style="background:#C9A84C18;border-bottom:1px solid #C9A84C25;">
+        <span class="cd-sec-icon">⭐</span>
+        <span class="cd-sec-title" style="color:#B7791F;">Clinical Pearls</span>
+      </div>
+      <div class="cd-body">
+        ${pearls.map(p => `<div class="pearl-item"><span class="pearl-star">★</span>${p}</div>`).join('')}
+      </div>
+    </div>`;
+  }
 
   html += '<div class="spacer"></div>';
   document.getElementById('card-detail-body').innerHTML = html;
